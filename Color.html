@@ -9,53 +9,540 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js"></script>
     <style>
-        :root{--primary-color:#007bff;--secondary-color:#f0f2f5;--text-color:#333;--card-bg:#fff;--shadow:0 4px 20px rgba(0,0,0,.1);--success-color:#28a745}body{font-family:'Poppins',sans-serif;background-color:var(--secondary-color);color:var(--text-color);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;margin:0;min-height:100vh;line-height:1.6}.container{width:100%;max-width:450px;background-color:var(--card-bg);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:24px;text-align:center}h1{color:var(--primary-color);font-size:1.8rem;font-weight:600;margin-bottom:20px}#camera-container{width:100%;position:relative;margin-bottom:20px;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.1)}video{width:100%;height:auto;display:block;background:#000;object-fit:cover;transform:scaleX(-1)}#overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;box-sizing:border-box;border:4px solid var(--primary-color);border-radius:12px;z-index:5;opacity:.7;transition:border-color .3s ease}#message-box{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;background:rgba(0,0,0,.7);padding:12px 20px;border-radius:8px;font-size:1rem;z-index:10;display:block;white-space:nowrap;transition:opacity .3s}.loading-dot{animation:dot-flashing 1s infinite linear;font-size:1.2rem;font-weight:700}.loading-dot:nth-child(2){animation-delay:.2s}.loading-dot:nth-child(3){animation-delay:.4s}@keyframes dot-flashing{0%,to{opacity:.2}50%{opacity:1}}button{width:100%;padding:14px;border:none;border-radius:8px;background-color:var(--primary-color);color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;transition:background-color .3s ease,transform .2s ease;box-shadow:0 4px 10px rgba(0,0,0,.2)}button:hover:not(:disabled){background-color:#0056b3;transform:translateY(-2px)}button:disabled{background-color:#a0a0a0;cursor:not-allowed;box-shadow:none}#results-container{width:100%;background-color:var(--card-bg);padding:24px;border-radius:16px;box-shadow:var(--shadow);margin-top:20px;text-align:left;display:none}#results-container h2{margin-top:0;color:var(--primary-color);border-bottom:2px solid var(--primary-color);padding-bottom:10px;font-size:1.6rem;font-weight:600}.color-palette{display:flex;gap:15px;margin-top:20px;flex-wrap:wrap;justify-content:center}.color-box{width:70px;height:70px;border-radius:50%;border:3px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;text-shadow:0 0 5px rgba(0,0,0,.5);font-weight:600;flex-direction:column;box-shadow:0 2px 5px rgba(0,0,0,.2);position:relative;animation:bounceIn .8s ease-out}.color-box span{font-size:.6rem;font-weight:400;opacity:.9}@keyframes bounceIn{0%{transform:scale(.3);opacity:0}50%{transform:scale(1.1);opacity:1}to{transform:scale(1)}}.manual-input{width:100%;margin-top:20px;text-align:left;display:none}.manual-input h3{color:var(--primary-color);margin-bottom:10px}.input-group{margin-bottom:15px}.input-group label{display:block;margin-bottom:5px;font-weight:600}.input-group select{width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;font-family:'Poppins',sans-serif}.alternative-method{margin-top:20px;padding:15px;background-color:#f8f9fa;border-radius:8px;text-align:center}.error-message{color:#d9534f;background-color:#f8d7da;border:1px solid #f5c6cb;padding:10px;border-radius:5px;margin-top:10px;display:none}
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #f0f2f5;
+            --text-color: #333;
+            --card-bg: #fff;
+            --shadow: 0 4px 20px rgba(0, 0, 0, .1);
+            --success-color: #28a745;
+            --error-color: #d9534f;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px;
+            text-align: center;
+        }
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        #camera-container {
+            width: 100%;
+            position: relative;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
+            background: #000;
+        }
+        video {
+            width: 100%;
+            height: auto;
+            display: none; /* Oculto hasta que se inicie */
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            box-sizing: border-box;
+            border: 4px solid var(--primary-color);
+            border-radius: 12px;
+            z-index: 5;
+            opacity: .7;
+            transition: border-color .3s ease;
+        }
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            background: rgba(0, 0, 0, .7);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            gap: 10px;
+            white-space: nowrap;
+            transition: opacity .3s;
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color .3s ease, transform .2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .2);
+            margin-top: 10px;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        #results-container {
+            width: 100%;
+            background-color: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+            text-align: left;
+            display: none;
+        }
+        #results-container h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .color-palette {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .color-box {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(0, 0, 0, .5);
+            font-weight: 600;
+            flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+        }
+        .manual-input {
+            width: 100%;
+            margin-top: 20px;
+            text-align: left;
+            display: none;
+        }
+        .manual-input h3 { color: var(--primary-color); margin-bottom: 10px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .input-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-family: 'Poppins', sans-serif; }
+        .alternative-method { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; text-align: center; }
+        .error-message {
+            color: var(--error-color);
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🌟 Tu Asesor de Color Profesional</h1>
+        
         <div id="camera-container">
-            <video id="camera-stream" autoplay playsinline></video>
+            <video id="camera-stream" playsinline></video>
             <div id="overlay"></div>
-            <div id="message-box">Cargando IA...</div>
+            <div id="message-box">
+                <div id="spinner" class="spinner" style="display: none;"></div>
+                <span id="message-text">Haz clic para iniciar</span>
+            </div>
         </div>
-        <button id="capture-button" disabled>Analizar mi estación de color</button>
+
+        <button id="start-button">Iniciar Análisis</button>
+        <button id="capture-button" style="display: none;" disabled>Analizar mi estación de color</button>
+        
         <div id="error-message" class="error-message"></div>
+        
         <div class="alternative-method">
             <p>Si el análisis automático no funciona, utiliza nuestro método manual:</p>
             <button id="manual-button">Seleccionar mis características</button>
         </div>
+        
         <div id="manual-input" class="manual-input">
             <h3>Selecciona tus características</h3>
             <div class="input-group">
                 <label for="skin-tone">Tono de piel:</label>
-                <select id="skin-tone"><option value="">Selecciona una opción</option><option value="claro">Claro</option><option value="medio">Medio</option><option value="oscuro">Oscuro</option></select>
+                <select id="skin-tone"><option value="">Selecciona</option><option value="claro">Claro</option><option value="medio">Medio</option><option value="oscuro">Oscuro</option></select>
             </div>
             <div class="input-group">
                 <label for="skin-undertone">Subtono de piel:</label>
-                <select id="skin-undertone"><option value="">Selecciona una opción</option><option value="calido">Cálido (dorado/amarillento)</option><option value="frio">Frío (rosado/azulado)</option><option value="neutro">Neutro</option></select>
+                <select id="skin-undertone"><option value="">Selecciona</option><option value="calido">Cálido (dorado/amarillento)</option><option value="frio">Frío (rosado/azulado)</option><option value="neutro">Neutro</option></select>
             </div>
             <div class="input-group">
                 <label for="hair-color">Color de cabello:</label>
-                <select id="hair-color"><option value="">Selecciona una opción</option><option value="rubio">Rubio</option><option value="castanio-claro">Castaño claro</option><option value="castanio-oscuro">Castaño oscuro</option><option value="negro">Negro</option><option value="rojo">Rojo</option><option value="gris">Gris/canoso</option></select>
+                <select id="hair-color"><option value="">Selecciona</option><option value="rubio">Rubio</option><option value="castanio-claro">Castaño claro</option><option value="castanio-oscuro">Castaño oscuro</option><option value="negro">Negro</option><option value="rojo">Rojo</option><option value="gris">Gris/canoso</option></select>
             </div>
             <div class="input-group">
                 <label for="eye-color">Color de ojos:</label>
-                <select id="eye-color"><option value="">Selecciona una opción</option><option value="azules">Azules</option><option value="verdes">Verdes</option><option value="marrones">Marrones</option><option value="grises">Grises</option><option value="avellana">Avellana</option></select>
+                <select id="eye-color"><option value="">Selecciona</option><option value="azules">Azules</option><option value="verdes">Verdes</option><option value="marrones">Marrones</option><option value="grises">Grises</option><option value="avellana">Avellana</option></select>
             </div>
             <button id="calculate-button">Calcular mi estación de color</button>
         </div>
     </div>
+    
     <canvas id="hidden-canvas" style="display:none;"></canvas>
+    
     <div id="results-container">
         <h2>Tu estación de color es: <span id="season-result"></span></h2>
         <p id="analysis-text"></p>
         <h3>Tu paleta de colores:</h3>
         <div id="color-palette" class="color-palette"></div>
     </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded',()=>{const e=vision.FaceLandmarker,t=vision.FilesetResolver,o=document.getElementById("camera-stream"),a=document.getElementById("hidden-canvas"),n=document.getElementById("capture-button"),s=document.getElementById("manual-button"),i=document.getElementById("manual-input"),l=document.getElementById("calculate-button"),r=document.getElementById("results-container"),c=document.getElementById("analysis-text"),d=document.getElementById("color-palette"),u=document.getElementById("season-result"),m=document.getElementById("message-box"),p=document.getElementById("error-message"),h=document.getElementById("overlay"),g=document.getElementById("skin-tone"),y=document.getElementById("skin-undertone"),f=document.getElementById("hair-color"),b=document.getElementById("eye-color");let v,k=null,w=-1;async function E(){const o=await t.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");v=await e.createFromOptions(o,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},outputFaceLandmarks:!0,runningMode:"VIDEO"}),x("IA Lista. ¡Iniciando cámara!"),L()}const x=(e,t=!1)=>{m.innerHTML=e,t&&(m.innerHTML+='<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span>'),m.style.display="block"},T=e=>{p.textContent=e,p.style.display="block"},C=()=>{p.style.display="none"};async function L(){navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:480}}}).then(e=>{o.srcObject=e,o.addEventListener("loadeddata",A)}).catch(e=>{console.error("Error de acceso a la cámara:",e);const t="No se pudo acceder a la cámara. Usa el método manual.";x(t),T(t),n.disabled=!0}):(console.error("getUserMedia not supported"),x("Tu navegador no soporta el acceso a la cámara. Usa el método manual."))}async function A(){if(o.currentTime!==w&&v){w=o.currentTime;const e=v.detectForVideo(o,Date.now());e.faceLandmarks&&e.faceLandmarks.length>0?(k=e.faceLandmarks[0],x("¡Rostro detectado! Haz clic para analizar",!1),h.style.borderColor="var(--success-color)",n.disabled=!1,C()):(k=null,x("Acerca tu rostro a la cámara",!1),h.style.borderColor="var(--primary-color)",n.disabled=!0)}window.requestAnimationFrame(A)}function S(e,t,o,n,s){try{const i=e.canvas.width-t-n,l=e.getImageData(i,o,n,s);let r=0,c=0,d=0,u=0;for(let e=0;e<l.data.length;e+=4)r+=l.data[e],c+=l.data[e+1],d+=l.data[e+2],u++;return{r:Math.round(r/u),g:Math.round(c/u),b:Math.round(d/u)}}catch(e){return console.error("Error al obtener datos de la imagen:",e),T("No se pudo analizar el área. Intenta con mejor iluminación."),null}}function P(e,t,o){return e>o&&t>o?"calido":o>e&&o>t?"frio":Math.abs(e-o)<20?"neutro":e>o?"calido":"frio"}function q(e,t,o){const a=.299*e+.587*t+.114*o;return a>170?"claro":a<90?"oscuro":"medio"}function M(e,t,o){let a,n,s;return"calido"===e?"claro"===t||"claro"===o?(a="Primavera",n="Tu subtono cálido y luminosidad clara te sitúan en la estación **Primavera**. Te verás genial con tonos claros, cálidos y vibrantes.",s=[{name:"Coral",hex:"#FF7F50"},{name:"Turquesa",hex:"#40E0D0"},{name:"Dorado",hex:"#FFD700"},{name:"Verde Lima",hex:"#32CD32"},{name:"Durazno",hex:"#FFCBA4"},{name:"Azul Real",hex:"#4169E1"}]):(a="Otoño",n="Tu subtono cálido y riqueza profunda te colocan en la estación **Otoño**. Te favorecen los tonos terrosos, cálidos y profundos.",s=[{name:"Verde Oliva",hex:"#6B8E23"},{name:"Naranja Quemado",hex:"#CC5500"},{name:"Rojo Ladrillo",hex:"#B22222"},{name:"Mostaza",hex:"#FFDB58"},{name:"Terracota",hex:"#E2725B"},{name:"Marrón Café",hex:"#4A2C2A"}]):"frio"===e?"claro"===t||"claro"===o?(a="Verano",n="Tu subtono frío y suavidad natural te sitúan en la estación **Verano**. Te favorecen los tonos suaves, empolvados y fríos.",s=[{name:"Rosa Palo",hex:"#FADADD"},{name:"Azul Bebé",hex:"#89CFF0"},{name:"Lavanda",hex:"#E6E6FA"},{name:"Gris Perla",hex:"#D3D3D3"},{name:"Menta Suave",hex:"#AAF0D1"},{name:"Frambuesa",hex:"#E30B5D"}]):(a="Invierno",n="Tu subtono frío y alto contraste te colocan en la estación **Invierno**. Te verás mejor con tonos intensos, fríos y puros.",s=[{name:"Azul Cobalto",hex:"#0047AB"},{name:"Verde Esmeralda",hex:"#50C878"},{name:"Rojo Rubí",hex:"#E0115F"},{name:"Fucsia",hex:"#FF00FF"},{name:"Blanco Puro",hex:"#FFFFFF"},{name:"Negro Intenso",hex:"#000000"}]):(a="Neutro",n="Tienes un subtono **Neutro**, lo que te da una gran versatilidad. Dependiendo de tu contraste, podrías inclinarte hacia paletas de Otoño Suave o Verano Suave. ¡Experimenta!",s=[{name:"Beige",hex:"#F5F5DC"},{name:"Gris Carbón",hex:"#36454F"},{name:"Verde Musgo",hex:"#8A9A5B"},{name:"Rojo Clásico",hex:"#D2042D"},{name:"Azul Petróleo",hex:"#008080"},{name:"Malva",hex:"#E0B0FF"}]),{season:a,description:n,suggestedColors:s}}function I(e,t,o){u.textContent=e,c.innerHTML=t,d.innerHTML="",o.forEach(e=>{const t=document.createElement("div");t.className="color-box",t.style.backgroundColor=e.hex;const o=e.name.split(" ");t.innerHTML=`<span>${o[0]}</span>${o[1]?`<span>${o[1]}</span>`:""}`,d.appendChild(t)}),r.style.display="block",r.scrollIntoView({behavior:"smooth"})}n.addEventListener("click",()=>{if(!k)return void T("No se detectó un rostro para analizar. Intenta de nuevo.");x("Analizando...",!0),n.disabled=!0,r.style.display="none",C();try{const e=a.getContext("2d",{willReadFrequently:!0});a.width=o.videoWidth,a.height=o.videoHeight,e.save(),e.scale(-1,1),e.drawImage(o,-a.width,0,a.width,a.height),e.restore();const t=k[119],s=k[10],i=t.x*a.width,l=t.y*a.height,c=s.x*a.width,d=s.y*a.height,u=S(e,i,l,20,20),m=S(e,c,d,20,20);if(!u||!m)return void x("Análisis fallido. Prueba con mejor luz o usa el método manual.");const p=P(u.r,u.g,u.b),h=q(u.r,u.g,u.b),g=q(m.r,m.g,m.b),{season:y,description:f,suggestedColors:b}=M(p,h,g);m.style.display="none",I(y,f,b)}catch(e){console.error("Error en el análisis:",e),x("Ocurrió un error. Intenta de nuevo o usa el método manual."),T("Error durante el análisis: "+e.message)}finally{n.disabled=!1}}),s.addEventListener("click",()=>{i.style.display="block",s.style.display="none"}),l.addEventListener("click",()=>{if(!g.value||!y.value||!f.value||!b.value)return void T("Por favor, completa todas las opciones manuales.");C();let e=g.value,t=y.value,o=["rubio","castanio-claro"].includes(f.value)?"claro":["negro","castanio-oscuro"].includes(f.value)?"oscuro":"medio";const {season:a,description:n,suggestedColors:s}=M(t,e,o);I(a,n,s)}),E()});
+    document.addEventListener('DOMContentLoaded', () => {
+        // Referencias a los elementos del DOM
+        const videoElement = document.getElementById("camera-stream");
+        const canvasElement = document.getElementById("hidden-canvas");
+        const startButton = document.getElementById("start-button");
+        const captureButton = document.getElementById("capture-button");
+        const manualButton = document.getElementById("manual-button");
+        const calculateButton = document.getElementById("calculate-button");
+        const manualInputContainer = document.getElementById("manual-input");
+        const resultsContainer = document.getElementById("results-container");
+        const analysisText = document.getElementById("analysis-text");
+        const colorPaletteContainer = document.getElementById("color-palette");
+        const seasonResult = document.getElementById("season-result");
+        const messageText = document.getElementById("message-text");
+        const spinner = document.getElementById("spinner");
+        const errorMessage = document.getElementById("error-message");
+        const overlay = document.getElementById("overlay");
+        const skinToneSelect = document.getElementById("skin-tone");
+        const skinUndertoneSelect = document.getElementById("skin-undertone");
+        const hairColorSelect = document.getElementById("hair-color");
+        const eyeColorSelect = document.getElementById("eye-color");
+
+        // Instancia de MediaPipe
+        const vision = window.vision;
+        let faceLandmarker;
+        let lastVideoTime = -1;
+        let faceLandmarks;
+
+        // --- Funciones de UI ---
+        
+        function showMessage(text, showSpinner = false) {
+            messageText.textContent = text;
+            spinner.style.display = showSpinner ? 'block' : 'none';
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+        
+        function clearError() {
+            errorMessage.style.display = 'none';
+        }
+
+        // --- Lógica Principal de la Aplicación ---
+
+        // 1. Inicializar el modelo de IA de MediaPipe
+        async function initializeFaceLandmarker() {
+            if (faceLandmarker) return; // Evitar reinicialización
+            
+            showMessage('Cargando modelo de IA...', true);
+            try {
+                const filesetResolver = await vision.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
+                faceLandmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
+                    baseOptions: {
+                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+                        delegate: "GPU" // Usar GPU si está disponible para mejor rendimiento
+                    },
+                    outputFaceLandmarks: true,
+                    runningMode: "VIDEO"
+                });
+                showMessage('IA lista.', false);
+            } catch (error) {
+                console.error("Error al inicializar el modelo de IA:", error);
+                showError("No se pudo cargar el modelo de IA. Intenta con el método manual.");
+                startButton.disabled = true;
+            }
+        }
+
+        // 2. Iniciar la cámara
+        async function startCamera() {
+            clearError();
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showError("Tu navegador no soporta el acceso a la cámara. Usa el método manual.");
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } });
+                videoElement.srcObject = stream;
+                videoElement.style.display = 'block';
+                videoElement.addEventListener("loadeddata", predictWebcam); // Iniciar detección
+                startButton.style.display = 'none';
+                captureButton.style.display = 'block';
+            } catch (err) {
+                console.error("Error de acceso a la cámara:", err);
+                if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                    showError("Permiso de cámara denegado. Por favor, habilita la cámara en los ajustes de tu navegador y recarga la página, o usa el método manual.");
+                } else {
+                    showError("No se pudo acceder a la cámara. Usa el método manual.");
+                }
+            }
+        }
+        
+        // 3. Bucle de detección de rostro
+        async function predictWebcam() {
+            if (videoElement.currentTime !== lastVideoTime && faceLandmarker) {
+                lastVideoTime = videoElement.currentTime;
+                const results = faceLandmarker.detectForVideo(videoElement, Date.now());
+
+                if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+                    faceLandmarks = results.faceLandmarks[0];
+                    showMessage('¡Rostro detectado!', false);
+                    overlay.style.borderColor = 'var(--success-color)';
+                    captureButton.disabled = false;
+                    clearError();
+                } else {
+                    faceLandmarks = null;
+                    showMessage('Acerca tu rostro', false);
+                    overlay.style.borderColor = 'var(--primary-color)';
+                    captureButton.disabled = true;
+                }
+            }
+            window.requestAnimationFrame(predictWebcam);
+        }
+
+        // 4. Capturar y analizar la imagen
+        function analyzeColors() {
+            if (!faceLandmarks) {
+                showError("No se detectó un rostro para analizar. Intenta de nuevo.");
+                return;
+            }
+
+            showMessage('Analizando...', true);
+            captureButton.disabled = true;
+            resultsContainer.style.display = 'none';
+            clearError();
+
+            try {
+                const context = canvasElement.getContext("2d", { willReadFrequently: true });
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+                
+                // Dibujar la imagen invertida horizontalmente (como un espejo)
+                context.save();
+                context.scale(-1, 1);
+                context.drawImage(videoElement, -canvasElement.width, 0, canvasElement.width, canvasElement.height);
+                context.restore();
+
+                // Puntos de referencia para frente (piel) y cabello
+                const foreheadPoint = faceLandmarks[10]; // Punto en la frente
+                const hairPoint = faceLandmarks[151];  // Punto en la línea del cabello/sien
+
+                const foreheadX = (1 - foreheadPoint.x) * canvasElement.width; // Invertir X
+                const foreheadY = foreheadPoint.y * canvasElement.height;
+                
+                const hairX = (1 - hairPoint.x) * canvasElement.width; // Invertir X
+                const hairY = hairPoint.y * canvasElement.height;
+
+                const skinColor = getAverageColor(context, foreheadX, foreheadY, 20, 20);
+                const hairColor = getAverageColor(context, hairX, hairY, 20, 20);
+
+                if (!skinColor || !hairColor) {
+                    throw new Error("No se pudo extraer el color. Intenta con mejor iluminación.");
+                }
+                
+                const skinUndertone = determineUndertone(skinColor.r, skinColor.g, skinColor.b);
+                const skinTone = determineTone(skinColor.r, skinColor.g, skinColor.b);
+                const hairTone = determineTone(hairColor.r, hairColor.g, hairColor.b);
+                
+                const { season, description, suggestedColors } = getSeason(skinUndertone, skinTone, hairTone);
+                
+                showMessage('¡Análisis completo!', false);
+                displayResults(season, description, suggestedColors);
+
+            } catch (error) {
+                console.error("Error en el análisis:", error);
+                showError(`Error: ${error.message}. Intenta de nuevo o usa el método manual.`);
+                showMessage('Análisis fallido', false);
+            } finally {
+                captureButton.disabled = false;
+            }
+        }
+        
+        // --- Funciones de Análisis de Color ---
+
+        function getAverageColor(context, x, y, width, height) {
+            try {
+                const imageData = context.getImageData(x - width / 2, y - height / 2, width, height);
+                let r = 0, g = 0, b = 0, count = 0;
+                for (let i = 0; i < imageData.data.length; i += 4) {
+                    r += imageData.data[i];
+                    g += imageData.data[i + 1];
+                    b += imageData.data[i + 2];
+                    count++;
+                }
+                return {
+                    r: Math.round(r / count),
+                    g: Math.round(g / count),
+                    b: Math.round(b / count)
+                };
+            } catch (e) {
+                console.error("Error al obtener datos de la imagen:", e);
+                return null;
+            }
+        }
+
+        function determineUndertone(r, g, b) {
+            const isWarm = r > b && g > b;
+            const isCool = b > r && b > g;
+            if (isWarm) return "calido";
+            if (isCool) return "frio";
+            return Math.abs(r - b) < 20 ? "neutro" : (r > b ? "calido" : "frio");
+        }
+
+        function determineTone(r, g, b) {
+            const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+            if (luminance > 170) return "claro";
+            if (luminance < 90) return "oscuro";
+            return "medio";
+        }
+
+        function getSeason(undertone, skinTone, hairTone) {
+            let season, description, suggestedColors;
+            if (undertone === "calido") {
+                if (skinTone === "claro" || hairTone === "claro") {
+                    season = "Primavera";
+                    description = "Tu subtono cálido y luminosidad te sitúan en **Primavera**. Te verás genial con tonos claros, cálidos y vibrantes.";
+                    suggestedColors = [{name:"Coral",hex:"#FF7F50"},{name:"Turquesa",hex:"#40E0D0"},{name:"Dorado",hex:"#FFD700"},{name:"Verde Lima",hex:"#32CD32"},{name:"Durazno",hex:"#FFCBA4"},{name:"Azul Real",hex:"#4169E1"}];
+                } else {
+                    season = "Otoño";
+                    description = "Tu subtono cálido y riqueza profunda te colocan en **Otoño**. Te favorecen los tonos terrosos, cálidos y profundos.";
+                    suggestedColors = [{name:"Verde Oliva",hex:"#6B8E23"},{name:"Naranja Quemado",hex:"#CC5500"},{name:"Rojo Ladrillo",hex:"#B22222"},{name:"Mostaza",hex:"#FFDB58"},{name:"Terracota",hex:"#E2725B"},{name:"Marrón Café",hex:"#4A2C2A"}];
+                }
+            } else if (undertone === "frio") {
+                if (skinTone === "claro" || hairTone === "claro") {
+                    season = "Verano";
+                    description = "Tu subtono frío y suavidad natural te sitúan en **Verano**. Te favorecen los tonos suaves, empolvados y fríos.";
+                    suggestedColors = [{name:"Rosa Palo",hex:"#FADADD"},{name:"Azul Bebé",hex:"#89CFF0"},{name:"Lavanda",hex:"#E6E6FA"},{name:"Gris Perla",hex:"#D3D3D3"},{name:"Menta Suave",hex:"#AAF0D1"},{name:"Frambuesa",hex:"#E30B5D"}];
+                } else {
+                    season = "Invierno";
+                    description = "Tu subtono frío y alto contraste te colocan en **Invierno**. Te verás mejor con tonos intensos, fríos y puros.";
+                    suggestedColors = [{name:"Azul Cobalto",hex:"#0047AB"},{name:"Verde Esmeralda",hex:"#50C878"},{name:"Rojo Rubí",hex:"#E0115F"},{name:"Fucsia",hex:"#FF00FF"},{name:"Blanco Puro",hex:"#FFFFFF"},{name:"Negro Intenso",hex:"#000000"}];
+                }
+            } else { // Neutro
+                season = "Neutro";
+                description = "Tienes un subtono **Neutro**, lo que te da una gran versatilidad. Dependiendo de tu contraste, podrías inclinarte hacia paletas de Otoño Suave o Verano Suave. ¡Experimenta!";
+                suggestedColors = [{name:"Beige",hex:"#F5F5DC"},{name:"Gris Carbón",hex:"#36454F"},{name:"Verde Musgo",hex:"#8A9A5B"},{name:"Rojo Clásico",hex:"#D2042D"},{name:"Azul Petróleo",hex:"#008080"},{name:"Malva",hex:"#E0B0FF"}];
+            }
+            return { season, description, suggestedColors };
+        }
+
+        // --- Funciones de Visualización de Resultados ---
+
+        function displayResults(season, description, colors) {
+            seasonResult.textContent = season;
+            analysisText.innerHTML = description.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            colorPaletteContainer.innerHTML = "";
+            colors.forEach(color => {
+                const colorBox = document.createElement("div");
+                colorBox.className = "color-box";
+                colorBox.style.backgroundColor = color.hex;
+                
+                const names = color.name.split(" ");
+                colorBox.innerHTML = `<span>${names[0]}</span>${names[1] ? `<span>${names[1]}</span>` : ''}`;
+                colorPaletteContainer.appendChild(colorBox);
+            });
+            resultsContainer.style.display = 'block';
+            resultsContainer.scrollIntoView({ behavior: "smooth" });
+        }
+        
+        // --- Event Listeners ---
+
+        startButton.addEventListener('click', async () => {
+            await initializeFaceLandmarker();
+            if (faceLandmarker) {
+                await startCamera();
+            }
+        });
+
+        captureButton.addEventListener('click', analyzeColors);
+
+        manualButton.addEventListener('click', () => {
+            manualInputContainer.style.display = 'block';
+            manualButton.style.display = 'none';
+        });
+
+        calculateButton.addEventListener('click', () => {
+            if (!skinToneSelect.value || !skinUndertoneSelect.value || !hairColorSelect.value || !eyeColorSelect.value) {
+                showError("Por favor, completa todas las opciones manuales.");
+                return;
+            }
+            clearError();
+
+            const skinTone = skinToneSelect.value;
+            const skinUndertone = skinUndertoneSelect.value;
+            const hairValue = hairColorSelect.value;
+            
+            const hairTone = ["rubio", "castanio-claro", "gris"].includes(hairValue) ? "claro" : "oscuro";
+            
+            const { season, description, suggestedColors } = getSeason(skinUndertone, skinTone, hairTone);
+            displayResults(season, description, suggestedColors);
+        });
+
+    });
     </script>
 </body>
 </html>
